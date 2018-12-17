@@ -1,0 +1,51 @@
+diff --git a/board/pluto/S23udc b/board/pluto/S23udc
+index 19e97fa..3ba9173 100644
+--- a/board/pluto/S23udc
++++ b/board/pluto/S23udc
+@@ -66,7 +66,7 @@ case "$1" in
+ 
+ 	mkdir -p $GADGET/functions/ffs.iio_ffs
+ 	mkdir -p $GADGET/functions/acm.usb0
+-	mkdir -p $GADGET/functions/rndis.0
++	mkdir -p $GADGET/functions/ecm.0
+ 	mkdir -p $GADGET/functions/mass_storage.0
+ 
+ #	echo /opt/vfat.img > $GADGET/functions/mass_storage.0/lun.0/file
+@@ -75,15 +75,15 @@ case "$1" in
+ 	host_addr=`echo -n 00:E0:22; echo $sha1 | dd bs=1 count=6 2>/dev/null | hexdump -v -e '/1 ":%01c""%c"'`
+ 	dev_addr=`echo -n 00:05:F7; echo $sha1 | dd bs=1 count=6 skip=6 2>/dev/null | hexdump -v -e '/1 ":%01c""%c"'`
+ 
+-	echo $host_addr > $GADGET/functions/rndis.0/host_addr
+-	echo $dev_addr > $GADGET/functions/rndis.0/dev_addr
++	echo $host_addr > $GADGET/functions/ecm.0/host_addr
++	echo $dev_addr > $GADGET/functions/ecms.0/dev_addr
+ 
+ 	mkdir -p $GADGET/configs/c.1
+ 	mkdir -p $GADGET/configs/c.1/strings/0x409
+-	echo "RNDIS/MSD/ACM/IIOUSBD" > $GADGET/configs/c.1/strings/0x409/configuration
++	echo "ECM/MSD/ACM/IIOUSBD" > $GADGET/configs/c.1/strings/0x409/configuration
+ 	echo 500 > $GADGET/configs/c.1/MaxPower
+ 
+-	ln -s $GADGET/functions/rndis.0 $GADGET/configs/c.1
++	ln -s $GADGET/functions/ecm.0 $GADGET/configs/c.1
+ 	ln -s $GADGET/functions/mass_storage.0 $GADGET/configs/c.1
+ 	ln -s $GADGET/functions/acm.usb0 $GADGET/configs/c.1
+ 	ln -s $GADGET/functions/ffs.iio_ffs $GADGET/configs/c.1/ffs.iio_ffs
+@@ -113,7 +113,7 @@ case "$1" in
+ 	echo "" > $GADGET/UDC
+ 	start-stop-daemon -K -q -p /var/run/iiod.pid 2>/dev/null
+ 
+-	rm $GADGET/configs/c.1/rndis.0
++	rm $GADGET/configs/c.1/ecm.0
+ 	rm $GADGET/configs/c.1/mass_storage.0
+ 	rm $GADGET/configs/c.1/acm.usb0
+ 	rm $GADGET/configs/c.1/ffs.iio_ffs
+@@ -124,7 +124,7 @@ case "$1" in
+ 
+ 	rmdir $GADGET/functions/ffs.iio_ffs
+ 	#rmdir $GADGET/functions/acm.usb0
+-	rmdir $GADGET/functions/rndis.0
++	rmdir $GADGET/functions/ecm.0
+ 	rmdir $GADGET/functions/mass_storage.0
+ 
+ 	rmdir $GADGET 2> /dev/null

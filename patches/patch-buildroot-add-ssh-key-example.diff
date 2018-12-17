@@ -1,0 +1,12 @@
+diff --git a/board/pluto/post-build.sh b/board/pluto/post-build.sh
+index 8c3386e..6a7e5dd 100755
+--- a/board/pluto/post-build.sh
++++ b/board/pluto/post-build.sh
+@@ -69,3 +69,7 @@ ln -sf ../../wpa_supplicant/ifupdown.sh ${TARGET_DIR}/etc/network/if-pre-up.d/wp
+ ln -sf ../../wpa_supplicant/ifupdown.sh ${TARGET_DIR}/etc/network/if-post-down.d/wpasupplicant
+ 
+ ln -sf device_reboot ${TARGET_DIR}/usr/sbin/pluto_reboot
++
++# Install SSH key
++mkdir -p ${TARGET_DIR}/root/.ssh
++echo "ssh-rsa PUT_YOUR_KEY_HERE user@machine.com" > ${TARGET_DIR}/root/.ssh/authorized_keys

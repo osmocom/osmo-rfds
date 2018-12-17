@@ -1,0 +1,270 @@
+diff --git a/library/axi_ad9361/Makefile b/library/axi_ad9361/Makefile
+index 5f239f2..70395b8 100644
+--- a/library/axi_ad9361/Makefile
++++ b/library/axi_ad9361/Makefile
+@@ -28,6 +28,8 @@ GENERIC_DEPS += ../common/up_delay_cntrl.v
+ GENERIC_DEPS += ../common/up_tdd_cntrl.v
+ GENERIC_DEPS += ../common/up_xfer_cntrl.v
+ GENERIC_DEPS += ../common/up_xfer_status.v
++GENERIC_DEPS += ../common/sig_combine.v
++GENERIC_DEPS += ../common/sig_delay.v
+ GENERIC_DEPS += axi_ad9361.v
+ GENERIC_DEPS += axi_ad9361_rx.v
+ GENERIC_DEPS += axi_ad9361_rx_channel.v
+diff --git a/library/axi_ad9361/axi_ad9361.v b/library/axi_ad9361/axi_ad9361.v
+index fac7dab..7b6931c 100644
+--- a/library/axi_ad9361/axi_ad9361.v
++++ b/library/axi_ad9361/axi_ad9361.v
+@@ -671,6 +671,14 @@ module axi_ad9361 #(
+     .dac_valid_q1 (dac_valid_q1_s),
+     .dac_data_q1 (dac_data_q1),
+     .dac_dunf(dac_dunf),
++    .adc_valid_i0(adc_valid_i0_int),
++    .adc_data_i0(adc_data_i0_int),
++    .adc_valid_q0(adc_valid_q0_int),
++    .adc_data_q0(adc_data_q0_int),
++    .adc_valid_i1(adc_valid_i1_int),
++    .adc_data_i1(adc_data_i1_int),
++    .adc_valid_q1(adc_valid_q1_int),
++    .adc_data_q1(adc_data_q1_int),
+     .up_pps_rcounter (up_pps_rcounter_s),
+     .up_pps_status (up_pps_status_s),
+     .up_pps_irq_mask (dac_up_pps_irq_mask_s),
+diff --git a/library/axi_ad9361/axi_ad9361_hw.tcl b/library/axi_ad9361/axi_ad9361_hw.tcl
+index d493bd4..8cd6d93 100644
+--- a/library/axi_ad9361/axi_ad9361_hw.tcl
++++ b/library/axi_ad9361/axi_ad9361_hw.tcl
+@@ -30,6 +30,8 @@ ad_ip_files axi_ad9361 [list\
+   $ad_hdl_dir/library/common/up_dac_common.v \
+   $ad_hdl_dir/library/common/up_dac_channel.v \
+   $ad_hdl_dir/library/common/up_tdd_cntrl.v \
++  $ad_hdl_dir/library/common/sig_combine.v \
++  $ad_hdl_dir/library/common/sig_delay.v \
+   altera/axi_ad9361_lvds_if_10.v \
+   altera/axi_ad9361_lvds_if_c5.v \
+   altera/axi_ad9361_lvds_if.v \
+diff --git a/library/axi_ad9361/axi_ad9361_ip.tcl b/library/axi_ad9361/axi_ad9361_ip.tcl
+index 35ceed1..262bff7 100644
+--- a/library/axi_ad9361/axi_ad9361_ip.tcl
++++ b/library/axi_ad9361/axi_ad9361_ip.tcl
+@@ -33,6 +33,8 @@ adi_ip_files axi_ad9361 [list \
+   "$ad_hdl_dir/library/common/up_dac_common.v" \
+   "$ad_hdl_dir/library/common/up_dac_channel.v" \
+   "$ad_hdl_dir/library/common/up_tdd_cntrl.v" \
++  "$ad_hdl_dir/library/common/sig_combine.v" \
++  "$ad_hdl_dir/library/common/sig_delay.v" \
+   "$ad_hdl_dir/library/xilinx/common/up_xfer_cntrl_constr.xdc" \
+   "$ad_hdl_dir/library/common/ad_pps_receiver_constr.ttcl" \
+   "$ad_hdl_dir/library/xilinx/common/ad_rst_constr.xdc" \
+diff --git a/library/axi_ad9361/axi_ad9361_tx.v b/library/axi_ad9361/axi_ad9361_tx.v
+index 83959c2..7e11e03 100644
+--- a/library/axi_ad9361/axi_ad9361_tx.v
++++ b/library/axi_ad9361/axi_ad9361_tx.v
+@@ -92,6 +92,16 @@ module axi_ad9361_tx #(
+   input   [15:0]  dac_data_q1,
+   input           dac_dunf,
+ 
++  // loopback
++  input           adc_valid_i0,
++  input   [15:0]  adc_data_i0,
++  input           adc_valid_q0,
++  input   [15:0]  adc_data_q0,
++  input           adc_valid_i1,
++  input   [15:0]  adc_data_i1,
++  input           adc_valid_q1,
++  input   [15:0]  adc_data_q1,
++
+   // gpio
+ 
+   input   [31:0]  up_dac_gpio_in,
+@@ -227,6 +237,7 @@ module axi_ad9361_tx #(
+     .dac_rst (dac_rst),
+     .dac_valid (dac_valid_int),
+     .dma_data (dac_data_i0),
++    .dma_rx_data (adc_data_i0),
+     .adc_data (adc_data[11:0]),
+     .dac_data (dac_data[11:0]),
+     .dac_data_out (dac_data_int_s[11:0]),
+@@ -262,6 +273,7 @@ module axi_ad9361_tx #(
+     .dac_rst (dac_rst),
+     .dac_valid (dac_valid_int),
+     .dma_data (dac_data_q0),
++    .dma_rx_data (adc_data_q0),
+     .adc_data (adc_data[23:12]),
+     .dac_data (dac_data[23:12]),
+     .dac_data_out (dac_data_int_s[23:12]),
+@@ -297,6 +309,7 @@ module axi_ad9361_tx #(
+     .dac_rst (dac_rst),
+     .dac_valid (dac_valid_int),
+     .dma_data (dac_data_i1),
++    .dma_rx_data (adc_data_i1),
+     .adc_data (adc_data[35:24]),
+     .dac_data (dac_data[35:24]),
+     .dac_data_out (dac_data_int_s[35:24]),
+@@ -332,6 +345,7 @@ module axi_ad9361_tx #(
+     .dac_rst (dac_rst),
+     .dac_valid (dac_valid_int),
+     .dma_data (dac_data_q1),
++    .dma_rx_data (adc_data_q1),
+     .adc_data (adc_data[47:36]),
+     .dac_data (dac_data[47:36]),
+     .dac_data_out (dac_data_int_s[47:36]),
+diff --git a/library/axi_ad9361/axi_ad9361_tx_channel.v b/library/axi_ad9361/axi_ad9361_tx_channel.v
+index f85d758..96f3c71 100644
+--- a/library/axi_ad9361/axi_ad9361_tx_channel.v
++++ b/library/axi_ad9361/axi_ad9361_tx_channel.v
+@@ -55,6 +55,7 @@ module axi_ad9361_tx_channel #(
+   input           dac_rst,
+   input           dac_valid,
+   input   [15:0]  dma_data,
++  input   [15:0]  dma_rx_data,
+   input   [11:0]  adc_data,
+   output  [11:0]  dac_data,
+   output  [11:0]  dac_data_out,
+@@ -114,10 +115,16 @@ module axi_ad9361_tx_channel #(
+   wire            dac_iqcor_enb_s;
+   wire    [15:0]  dac_iqcor_coeff_1_s;
+   wire    [15:0]  dac_iqcor_coeff_2_s;
++  wire    [15:0]  dac_rfloop_delay_s;
++  wire    [15:0]  dac_rfloop_scale_s;
+   wire            up_wack_s;
+   wire            up_rack_s;
+   wire    [31:0]  up_rdata_s;
+ 
++  wire    [11:0]  delayed_rx_data;
++  wire    [11:0]  rflb_data;
++
++
+   // standard prbs functions
+ 
+   function [23:0] pn1fn;
+@@ -250,7 +257,7 @@ module axi_ad9361_tx_channel #(
+   assign dac_data = (DISABLE == 1) ? 12'd0 : dac_data_int;
+ 
+   always @(posedge dac_clk) begin
+-    dac_enable_int <= (dac_data_sel_s == 4'h2) ? 1'b1 : 1'b0;
++    dac_enable_int <= ((dac_data_sel_s == 4'h2) || (dac_data_sel_s[3] == 1'b1)) ? 1'b1 : 1'b0;
+     if (dac_iqcor_valid_s == 1'b1) begin
+       dac_data_int <= dac_iqcor_data_s[15:4];
+     end
+@@ -276,6 +283,10 @@ module axi_ad9361_tx_channel #(
+ 
+   always @(posedge dac_clk) begin
+     case (dac_data_sel_s)
++      4'hd: dac_data_out_int <= dma_data[15:4];
++      4'hc: dac_data_out_int <= dma_rx_data[11:0];
++      4'hb: dac_data_out_int <= delayed_rx_data;
++      4'ha: dac_data_out_int <= rflb_data;
+       4'h9: dac_data_out_int <= dac_pn_data;
+       4'h8: dac_data_out_int <= adc_data;
+       4'h3: dac_data_out_int <= 12'd0;
+@@ -337,6 +348,33 @@ module axi_ad9361_tx_channel #(
+     .tone_2_freq_word (dac_dds_incr_2_s),
+     .dac_dds_data (dac_dds_data_s));
+ 
++  // RF Loopback chain
++    // Delay
++  sig_delay #(
++      .WIDTH(12)
++  ) rflb_delay_I (
++      .data_valid(dac_valid),
++      .data_in(dma_rx_data[11:0]),
++      .data_out(delayed_rx_data),
++      .delay(dac_rfloop_delay_s[14:0]),
++      .clk(dac_clk),
++      .rst(dac_rst)
++  );
++
++    // Combining
++  sig_combine #(
++      .D_WIDTH(12),
++      .S_WIDTH(16),
++      .S_FRAC(14)
++  ) rflb_combine_I (
++      .in_data_0(delayed_rx_data),
++      .in_scale_0(dac_rfloop_scale_s),
++      .in_chain_0(dma_data[15:4]),
++      .out_3(rflb_data),
++      .clk(dac_clk),
++      .rst(dac_rst)
++  );
++
+   // single channel processor
+ 
+   assign up_wack = (DISABLE == 1) ? 1'd0 : up_wack_s;
+@@ -365,6 +403,8 @@ module axi_ad9361_tx_channel #(
+     .dac_iqcor_enb (dac_iqcor_enb_s),
+     .dac_iqcor_coeff_1 (dac_iqcor_coeff_1_s),
+     .dac_iqcor_coeff_2 (dac_iqcor_coeff_2_s),
++    .dac_rfloop_delay (dac_rfloop_delay_s),
++    .dac_rfloop_scale (dac_rfloop_scale_s),
+     .up_usr_datatype_be (),
+     .up_usr_datatype_signed (),
+     .up_usr_datatype_shift (),
+diff --git a/library/common/up_dac_channel.v b/library/common/up_dac_channel.v
+index 8c20ad7..9d0f779 100644
+--- a/library/common/up_dac_channel.v
++++ b/library/common/up_dac_channel.v
+@@ -62,6 +62,8 @@ module up_dac_channel #(
+   output          dac_iqcor_enb,
+   output  [15:0]  dac_iqcor_coeff_1,
+   output  [15:0]  dac_iqcor_coeff_2,
++  output  [15:0]  dac_rfloop_delay,
++  output  [15:0]  dac_rfloop_scale,
+ 
+   // user controls
+ 
+@@ -110,6 +112,8 @@ module up_dac_channel #(
+   reg     [ 3:0]  up_dac_data_sel = 'd0;
+   reg     [15:0]  up_dac_iqcor_coeff_1 = 'd0;
+   reg     [15:0]  up_dac_iqcor_coeff_2 = 'd0;
++  reg     [15:0]  up_dac_rfloop_delay = 'd0;
++  reg     [15:0]  up_dac_rfloop_scale = 'd0;
+   reg             up_usr_datatype_be_int = 'd0;
+   reg             up_usr_datatype_signed_int = 'd0;
+   reg     [ 7:0]  up_usr_datatype_shift_int = 'd0;
+@@ -325,6 +329,18 @@ module up_dac_channel #(
+     end
+   end
+ 
++  always @(negedge up_rstn or posedge up_clk) begin
++    if (up_rstn == 0) begin
++      up_dac_rfloop_delay <= 'd0;
++      up_dac_rfloop_scale <= 'd0;
++    end else begin
++      if ((up_wreq_s == 1'b1) && (up_waddr[3:0] == 4'hf)) begin
++        up_dac_rfloop_delay <= up_wdata[31:16];
++        up_dac_rfloop_scale <= up_wdata[15:0];
++      end
++    end
++  end
++
+   // processor read interface
+ 
+   assign up_rack = up_rack_int;
+@@ -351,6 +367,7 @@ module up_dac_channel #(
+                                   dac_usr_datatype_bits};
+           4'h9: up_rdata_int <= { dac_usr_interpolation_m, dac_usr_interpolation_n};
+           4'ha: up_rdata_int <= { 30'd0, up_dac_iq_mode};
++          4'hf: up_rdata_int <= { up_dac_rfloop_delay, up_dac_rfloop_scale};
+           default: up_rdata_int <= 0;
+         endcase
+       end else begin
+@@ -398,6 +415,8 @@ module up_dac_channel #(
+                       up_dac_iqcor_enb,
+                       up_dac_iqcor_coeff_tc_1,
+                       up_dac_iqcor_coeff_tc_2,
++                      up_dac_rfloop_delay,
++                      up_dac_rfloop_scale,
+                       up_dac_dds_scale_tc_1,
+                       up_dac_dds_init_1,
+                       up_dac_dds_incr_1,
+@@ -414,6 +433,8 @@ module up_dac_channel #(
+                       dac_iqcor_enb,
+                       dac_iqcor_coeff_1,
+                       dac_iqcor_coeff_2,
++                      dac_rfloop_delay,
++                      dac_rfloop_scale,
+                       dac_dds_scale_1,
+                       dac_dds_init_1,
+                       dac_dds_incr_1,
