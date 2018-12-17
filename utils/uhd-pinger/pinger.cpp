@@ -141,7 +141,7 @@ burst_gen(struct app_state *app)
 		pulse->flags = CXVEC_FLG_REAL_ONLY;
 
 		for (int i=0; i<pulse->len; i++)
-			pulse->data[i] = rrc_taps[i];
+			pulse->data[i] = rrc_taps[i] * sps;
 
 		osmo_cxvec_convolve(pulse, burst, CONV_NO_DELAY, burst);
 
