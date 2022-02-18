@@ -20,10 +20,9 @@ GIT Repository
 
 You can clone from the official osmo-rfds.git repository using
 
-	git clone git://git.osmocom.org/osmo-rfds.git
-	git clone https://git.osmocom.org/osmo-rfds.git
+	git clone https://gitea.osmocom.org/sdr/osmo-rfds.git
 
-There is a cgit interface at https://git.osmocom.org/osmo-rfds/
+There is also a web interface at https://gitea.osmocom.org/sdr/osmo-rfds
 
 Documentation
 -------------
