@@ -1,4 +1,4 @@
-osmo-dfds - RF delay simulator
+osmo-rfds - RF delay simulator
 ==============================
 
 This repository contains the source code for an RF delay simulator,
