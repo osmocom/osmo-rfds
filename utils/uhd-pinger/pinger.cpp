@@ -346,16 +346,30 @@ dev_open(struct app_state *app)
 		for (int i=0; i<2; i++)
 		{
 			std::string filter_path = i ? rx_filter_path : tx_filter_path;
+			#if (UHD_VERSION >= 4000000)
+			uhd::filter_info_base::sptr filter = i ? app->usrp->get_rx_filter(filter_path, 0) : app->usrp->get_tx_filter(filter_path, 0);
+			uhd::digital_filter_fir<boost::int16_t>::sptr fir_filter =
+				std::dynamic_pointer_cast<
+				uhd::digital_filter_fir<boost::int16_t> >(filter);
+			#else
 			uhd::filter_info_base::sptr filter = app->usrp->get_filter(filter_path);
-
 			uhd::digital_filter_fir<boost::int16_t>::sptr fir_filter =
 				boost::dynamic_pointer_cast<
 				uhd::digital_filter_fir<boost::int16_t> >(filter);
+			#endif
+
 			std::vector<boost::int16_t> taps_vect;
 
 			taps_vect.assign(fir_coeffs, fir_coeffs+128);
 			fir_filter->set_taps(taps_vect);
+			#if (UHD_VERSION >= 4000000)
+			if(i)
+				app->usrp->set_rx_filter(filter_path, filter, 0);
+			else
+				app->usrp->set_tx_filter(filter_path, filter, 0);
+			#else
 			app->usrp->set_filter(filter_path, filter);
+			#endif
 		}
 	}
 
