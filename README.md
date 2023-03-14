@@ -9,6 +9,12 @@ loops in TDMA systems, such as GSM.
 It is part of the [Osmocom](https://osmocom.org/) Open Source Mobile
 Communications project.
 
+The hardware we use for this is the PlotoSDR, also known as
+[ADALM-PLUTO](https://www.analog.com/en/design-center/evaluation-hardware-and-software/evaluation-boards-kits/adalm-pluto.html).
+
+This repository contains the FPGA gateware, firmware and software to
+turn the PlutoSDR into said RF delay simulator.
+
 Homepage
 --------
 
@@ -28,6 +34,11 @@ Documentation
 -------------
 
 See the doc/ sub-directory.
+
+Video Presentation
+------------------
+
+A recorded video presentation about osmo-rfds can be found at https://media.ccc.de/v/osmodevcon2019-101-osmo-rfds-osmocom-rf-delay-simulator
 
 Mailing List
 ------------
